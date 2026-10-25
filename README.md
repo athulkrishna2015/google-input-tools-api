@@ -58,6 +58,19 @@ curl "http://localhost:8080/convert?text=ente%20pere%20raman%20aanu"
 curl -X POST http://localhost:8080/convert -d '{"text":"namaskaram","num":3}'
 ```
 
+## Other languages
+
+The same endpoint covers other Indic scripts via the `itc` code:
+
+```sh
+./manglish --lang hindi "namaste"
+./manglish --lang tamil "vanakkam"
+./manglish --lang kannada "namaskara"
+./manglish --itc te-t-i0-und "namaskaram"   # raw code
+```
+
+Supported names: malayalam, hindi, tamil, kannada, telugu, bengali, gujarati, marathi, punjabi, odia.
+
 ## Notes
 
 - No API key, no account. It is someone else's free web tool being driven over

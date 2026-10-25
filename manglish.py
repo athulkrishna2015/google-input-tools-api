@@ -27,6 +27,20 @@ ENDPOINT = "https://inputtools.google.com/request"
 DEFAULT_ITC = "ml-t-i0-und"
 DEFAULT_NUM = 5
 
+# Google Input Tools codes for Indic transliteration (manglish-style typing).
+LANGUAGES = {
+    "malayalam": "ml-t-i0-und",
+    "hindi": "hi-t-i0-und",
+    "tamil": "ta-t-i0-und",
+    "kannada": "kn-t-i0-und",
+    "telugu": "te-t-i0-und",
+    "bengali": "bn-t-i0-und",
+    "gujarati": "gu-t-i0-und",
+    "marathi": "mr-t-i0-und",
+    "punjabi": "pa-t-i0-und",
+    "odia": "or-t-i0-und",
+}
+
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36"
@@ -43,6 +57,16 @@ class Conversion:
     @property
     def top(self) -> Optional[str]:
         return self.candidates[0] if self.candidates else None
+
+
+def itc_for(lang: str) -> str:
+    """Resolve a language name (or raw itc code) to an itc code."""
+    lang = (lang or "").strip().lower()
+    if lang in LANGUAGES:
+        return LANGUAGES[lang]
+    if "-t-i0-und" in lang:
+        return lang
+    raise ValueError(f"unknown language: {lang!r}; choices: {', '.join(LANGUAGES)}")
 
 
 def convert(

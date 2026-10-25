@@ -48,7 +48,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(400, {"error": "missing 'text'"})
                 return
             num = int((q.get("num") or ["5"])[0])
-            itc = (q.get("itc") or [manglish.DEFAULT_ITC])[0]
+            lang = (q.get("lang") or ["malayalam"])[0]
+            itc = (q.get("itc") or [manglish.itc_for(lang)])[0]
             conv = manglish.convert(text, itc=itc, num=num)
             self._send(200, {"input": conv.input, "candidates": conv.candidates, "top": conv.top})
             return
@@ -70,7 +71,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, {"error": "missing 'text'"})
             return
         num = int(data.get("num", 5))
-        itc = data.get("itc", manglish.DEFAULT_ITC)
+        itc = data.get("itc") or manglish.itc_for(data.get("lang", "malayalam"))
         conv = manglish.convert(text, itc=itc, num=num)
         self._send(200, {"input": conv.input, "candidates": conv.candidates, "top": conv.top})
 
