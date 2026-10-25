@@ -1,17 +1,16 @@
-# manglish-typing-api
+# google-input-tools-api
 
-Manglish (Latin-script Malayalam) → Malayalam conversion, extracted from the
-network traffic of [https://www.manglish.app/](https://www.manglish.app/).
+Transliteration for 27 languages via the (undocumented) Google Input Tools endpoint
+that [https://www.manglish.app/](https://www.manglish.app/) drives in the browser.
 
-The site itself does not host a conversion model. Every keystroke is sent to
-Google's (undocumented) Input Tools endpoint:
+The site itself does not host a conversion model. Every keystroke is sent to:
 
 ```
 GET https://inputtools.google.com/request
-    ?text=<manglish>&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8
+    ?text=<latin>&itc=<code>&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8
 ```
 
-- `itc=ml-t-i0-und` selects Malayalam transliteration.
+- `itc` selects the language/script (e.g. `ml-t-i0-und` for Malayalam, `pinyin` for Chinese).
 - `num` = how many candidates to return.
 - `cp` = cursor position inside `text`.
 - `cs` = commit-segment flag (0/1).
@@ -25,27 +24,36 @@ Response:
   [], {"candidate_type": [0,0,0,0,0]}]]]
 ```
 
-The first candidate is the best guess. Other Indic languages use their own
-`itc` codes: `hi-t-i0-und` (Hindi), `ta-t-i0-und` (Tamil), `kn-t-i0-und`
-(Kannada), etc.
+The first candidate is the best guess.
+
+## Supported languages
+
+amharic, arabic, assamese, bengali, belarusian, bulgarian, chinese, greek,
+gujarati, hebrew, hindi, kannada, malayalam, marathi, nepali, odia, persian,
+punjabi, russian, sanskrit, serbian, sinhala, tamil, telugu, tigrinya,
+ukrainian, urdu.
 
 ## Install / use
 
 No dependencies beyond Python 3.8+.
 
 ```sh
-./manglish "ente pere raman aanu"          # -> എന്റെ പേര് രാമൻ ആണ്
-./manglish -a "namaskaram"                 # all 5 candidates
-./manglish --json "njan"                   # raw response
-echo "sugham aano" | ./manglish
-./manglish -i input.txt -o output.txt
+./inputtools "ente pere raman aanu"          # -> എന്റെ പേര് രാമൻ ആണ്
+./inputtools --lang hindi "namaste"
+./inputtools --lang tamil "vanakkam"
+./inputtools -a "namaskaram"                 # all candidates
+./inputtools --json "njan"                   # raw response
+echo "sugham aano" | ./inputtools
+./inputtools -i input.txt -o output.txt
 ```
+
+Backward-compatible `manglish` wrapper is also provided.
 
 As a library:
 
 ```python
-from manglish import convert
-c = convert("ente pere raman aanu")
+from inputtools import convert
+c = convert("ente pere raman aanu", itc="ml-t-i0-und")
 print(c.top)          # എന്റെ പേര് രാമൻ ആണ്
 print(c.candidates)   # all candidates
 ```
@@ -54,22 +62,9 @@ print(c.candidates)   # all candidates
 
 ```sh
 ./server.py            # listens on 0.0.0.0:8080
-curl "http://localhost:8080/convert?text=ente%20pere%20raman%20aanu"
-curl -X POST http://localhost:8080/convert -d '{"text":"namaskaram","num":3}'
+curl "http://localhost:8080/convert?text=ente%20pere%20raman%20aanu&lang=malayalam"
+curl -X POST http://localhost:8080/convert -d '{"text":"namaste","lang":"hindi"}'
 ```
-
-## Other languages
-
-The same endpoint covers other Indic scripts via the `itc` code:
-
-```sh
-./manglish --lang hindi "namaste"
-./manglish --lang tamil "vanakkam"
-./manglish --lang kannada "namaskara"
-./manglish --itc te-t-i0-und "namaskaram"   # raw code
-```
-
-Supported names: malayalam, hindi, tamil, kannada, telugu, bengali, gujarati, marathi, punjabi, odia.
 
 ## Notes
 

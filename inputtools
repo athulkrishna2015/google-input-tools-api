@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""manglish - convert Manglish (Latin Malayalam) to Malayalam.
+
+Uses the undocumented Google Input Tools endpoint that https://www.manglish.app/
+drives. No API key, no account.
+"""
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from inputtools import convert, DEFAULT_ITC, LANGUAGES, itc_for
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        prog="inputtools",
+        description="Convert Manglish text to Malayalam using Google Input Tools.",
+    )
+    ap.add_argument("text", nargs="*", help="Manglish text (or read from stdin)")
+    ap.add_argument("-n", "--num", type=int, default=5, help="number of candidates (default 5)")
+    ap.add_argument("--itc", default=None, help="input tool code (overrides --lang)")
+    ap.add_argument("--lang", default="malayalam", help="language name: " + ", ".join(LANGUAGES))
+    ap.add_argument("-a", "--all", action="store_true", help="print all candidates, one per line")
+    ap.add_argument("--json", action="store_true", help="print raw JSON response")
+    ap.add_argument("-i", "--input", type=Path, help="read input from file")
+    ap.add_argument("-o", "--output", type=Path, help="write result to file")
+    ap.add_argument("-1", "--first", action="store_true", help="print only the top candidate (default)")
+    args = ap.parse_args()
+
+    if args.input:
+        text = args.input.read_text(encoding="utf-8").strip()
+    elif args.text:
+        text = " ".join(args.text)
+    else:
+        text = sys.stdin.read().strip()
+
+    if not text:
+        ap.error("no input text")
+
+    itc = args.itc if args.itc else itc_for(args.lang)
+    conv = convert(text, itc=itc, num=args.num)
+
+    if args.json:
+        out = json.dumps(conv.raw, ensure_ascii=False, indent=2)
+    elif args.all:
+        out = "\n".join(conv.candidates)
+    else:
+        out = conv.top or ""
+
+    if args.output:
+        args.output.write_text(out + ("\n" if out and not out.endswith("\n") else ""), encoding="utf-8")
+    else:
+        print(out)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
